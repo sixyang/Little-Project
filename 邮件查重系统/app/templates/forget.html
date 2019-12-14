@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}忘记密码{% endblock %}
+
+{% block content %}
+
+<div class="container" style="padding-top: 5%">
+    <form class="form-horizontal" role="form" method="post" action="/forget">
+        <div class="form-group row">
+            <label class="col-sm-1 col-form-label-lg">邮箱:</label>
+            <div class="col-sm-6">
+                <input type="email" class="form-control form-control-lg" name="email" placeholder="请输入邮箱" required>
+                <button type="button" id="btn-submit" class="btn btn-primary">发送验证码</button>
+            </div>
+        </div>
+
+
+        <div class="form-group row">
+            <label class="col-sm-1 col-form-label-lg">验证码:</label>
+            <div class="col-sm-6">
+                <input type="text" class="form-control form-control-lg" name="verfy_code" placeholder="请输入验证码" required>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="verfy-submit">提交</button>
+
+    </form>
+</div>
+
+<!--{% endif %}-->
+
+
+<script>
+    $('#btn-submit').click(function() {
+            exec = false;
+            $.ajax({
+                url: '/forget',
+                type: 'post',
+                data: {
+                    email: $('[name="email"]').val(),
+                    code: 'yes'
+                },
+                success: function (data) {
+                    if (data === 'no') {
+                        alert('您还没有注册该邮箱！');
+                    } else if (data === 'yes') {
+                        exec = true;
+                    }
+                }
+            });
+
+            var btn = $('#btn-submit');
+            btn.attr('disabled', true);
+            var timeLeft = 10;
+
+            function timeI() {
+                console.log(timeLeft);
+                if (timeLeft > 0) {
+                    timeLeft -= 1;
+                    btn.text(timeLeft + "秒后重新发送");
+                } else {
+                    btn.text("重新发送");
+                    btn.attr('disabled', false);
+                }
+            }
+
+            var i = setInterval(timeI, 1000);
+
+        }
+    );
+
+    $('#verfy-submit').click(function () {
+        $.ajax({
+            url: '/forget',
+            type: 'post',
+            data: {
+                verfy_code: $('[name="verfy_code"]').val()
+            },
+            success: function (data) {
+                if(data === 'ok'){
+                    alert('验证成功！');
+                    window.location.href = '/modify';
+                }
+                else if(data === 'none'){
+                    alert("请输入验证码！");
+                }
+                else{
+                    alert(data + ' 您的邮箱输入有误，请重新输入！');
+                }
+            }
+        })
+
+    })
+
+</script>
+
+{% endblock %}

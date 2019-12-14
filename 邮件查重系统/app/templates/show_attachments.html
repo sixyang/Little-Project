@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% block title %}附件展示{% endblock %}
+{% block li_attr2 %}active{% endblock %}
+
+{% if not root %}
+{% block styles %}
+<link rel="stylesheet" href="../../static/bootstrap-4.3.1/css/bootstrap.min.css">
+<script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+<script src="../../static/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+<script src="../../static/bootstrap-4.3.1/js/bootbox.min.js"></script>
+<link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.css">
+<style>
+    /*.pagination li {*/
+    /*    padding: 5px;*/
+    /*}*/
+    ul.pagination {
+        display: inline-block;
+        padding: 0;
+        margin: 0;
+    }
+
+    ul.pagination li {
+        display: inline;
+
+    }
+
+    ul.pagination li a {
+        /*color: black;*/
+        float: left;
+        padding: 8px 16px;
+        text-decoration: none;
+        transition: background-color .3s;
+        border: 1px solid #ddd;
+        border-radius: 2px !important;
+    }
+
+    ul.pagination li a.active {
+        background-color: #4CAF50;
+        color: white;
+        border: 1px solid #4CAF50;
+    }
+
+    ul.pagination li a:hover:not(.active) {
+        background-color: #ddd;
+    }
+
+    ul.pagination .disabled {
+        pointer-events: none;
+        opacity: 0.6;
+    }
+
+
+</style>
+{% endblock %}
+{% endif %}
+{% block content %}
+
+
+<ul class="nav nav-tabs" style="padding-top: 5%">
+    <li class="nav-item">
+        <a class="nav-link active" href="{{ url_for('file.show_upload_attachments') }}"><abbr
+                title="可查看所有下载过的作业">所有作业</abbr></a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('file.duplicate') }}">作业查重</a>
+    </li>
+</ul>
+
+
+<div class="container tab-content" style="padding-top: 2rem">
+    <div style="margin-bottom: 10px">
+        {% if path %}
+            <form action="/file/show/{{path}}" method="post">
+        {% else %}
+            <form action="/show_upload_attachments" method="post">
+        {% endif %}
+            <input type="text" class="form-control-sm" name="search" id="search">
+            <button class="btn-primary btn" style="margin-left: 10px" type="submit" id="searchbtn">查找</button><sub>(只能在当前列表下搜索)</sub>
+        </form>
+    </div>
+    {% if path %}
+    <button class="btn-primary btn" style="margin-bottom: 15px;float: right" onclick="download_file('{{path}}');">
+        下载所有作业
+    </button>
+    {% endif %}
+    <table class="table table-bordered table-striped">
+        <thead class="thead-dark">
+        <tr>
+            <th style="text-align: center;">附件列表<sub>(文件点击即可下载)</sub></th>
+            <th style="text-align: center;" colspan="2">相关操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% if index_list and index_list != ['nothing'] %}
+        {% for attach in index_list %}
+        <tr>
+            {% if attach != 'Webpages' %}
+
+                {% if path %}
+                    <td><a class="download_all" href="/file/download_f/{{path}}~{{attach}}">{{ attach }}</a></td>
+                    <td class="delete_file operation" style="opacity: 50%;cursor: pointer;color: #149a80">删除</td>
+                    {% if display %}
+                        <td class="read operation" style="opacity: 50%;cursor: pointer;color: #149a80">在线批阅</td>
+
+                    {% endif %}
+                {% else %}
+                    <td><a href="/file/show/{{ attach }}">
+                        {% if attach == 'Xlsxs'%}
+                            {{ attach }}<sub>(分析结果)</sub>
+                        {% elif attach == 'Zips' %}
+                            {{attach}}<sub>(文件压缩包)</sub>
+                        {% else %}
+                            {{attach}}
+                        {% endif %}
+                    </a></td>
+                    <td class="delete_file operation" style="opacity: 50%;cursor: pointer;color: #149a80">删除</td>
+                {% endif %}
+            {% endif %}
+
+        </tr>
+        {% endfor %}
+
+        {% elif index_list == ['nothing'] %}
+        <script>
+            var ret = window.confirm("没有类似名称文件");
+            if (ret) {
+                history.go(-1);
+            }
+        </script>
+
+        {% else %}
+
+        <script>
+            var ret = window.confirm("该目录下没有文件");
+            if (ret) {
+                history.go(-1);
+            }
+        </script>
+        {% endif%}
+        </tbody>
+    </table>
+    <div class="pull-right">
+        <ul class="pagination">
+            {{ html|safe }}
+        </ul>
+    </div>
+
+</div>
+<div hidden="hidden" id="task">{{stask_id}}</div>
+
+
+<script>
+    var operation = $(".operation");
+    operation.mouseover(function () {
+        $(this).css('opacity', "100%");
+    });
+    operation.mouseleave(function () {
+        $(this).css('opacity', "50%");
+    });
+
+    function download_file(f) {
+        window.location.href = "/file/download_a/{{path}}";
+    }
+
+    var delete_file = $(".delete_file");
+    delete_file.click(function () {
+        var judge = confirm("您想删除这个文件吗？");
+        if (judge) {
+            $.ajax({
+                url: '/file/delete',
+                type: 'post',
+                data: {
+                    file: $(this).prev().children().attr("href")
+                },
+                success: function (data) {
+                    window.location.reload();
+                },
+                error: function (data) {
+                    alert("您的操作有误");
+                }
+            })
+        }
+    });
+
+    var read_file = $(".read");
+    read_file.click(function () {
+        file_name = $(this).prev().prev().text();
+        window.open("/file/read_online/{{path}}-"+file_name);
+    });
+
+    var search = $("#search");
+    $("#searchbtn").click(function () {
+
+    });
+
+    task = $("#task").text();
+
+    function update_progress() {
+            $.getJSON('/back_mail/' + task, function (data) {
+                    if (data['state'] === 'SUCCESS') {
+                        bootbox.alert('回执邮件发送成功！');
+                    } else {
+                        setTimeout(function () {
+                            update_progress();
+                        }, 3000);
+                    }
+                }
+            );
+        }
+    if (task) {
+        bootbox.alert('正在发送回执邮件，请不要离开此页面');
+        update_progress();
+    }
+</script>
+{% endblock %}

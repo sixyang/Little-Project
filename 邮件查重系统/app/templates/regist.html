@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}注册{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 5%">
+    <form class="form-horizontal" role="form" method="post" action="/regist">
+        <div class="form-group row" >
+            <label class="col-sm-2 col-form-label-lg">注册邮箱:</label>
+            <div class="col-sm-6">
+
+                <input type="email" class="form-control form-control-lg" name="email" placeholder="请输入真实存在的邮箱" required>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label-lg">密码:</label>
+            <div class="col-sm-6">
+                <input type="password" class="form-control form-control-lg" name="password1" placeholder="请输入密码" required>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label-lg">确认密码:</label>
+            <div class="col-sm-6">
+                <input type="password" class="form-control form-control-lg" name="password2" id="password2" placeholder="请再次输入密码" required>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label-lg">验证码:</label>
+            <span class="col-sm-6">
+                <input type="text" class="form-control form-control-lg" name="verfy" placeholder="请输入验证码" required>
+                <div id="replace">
+                    <img src="{{pic}}" id="verfy_image"/>
+                    <p>看不清，换一张</p>
+                </div>
+            </span>
+        </div>
+        <div class="form-group">
+            <div>
+                <button type="button" id="btn-submit" class="btn btn-primary">注册</button>
+            </div>
+        </div>
+    </form>
+
+
+<script>
+    $('#btn-submit').click(function () {
+        $.ajax({
+            url: '/regist',
+            type: 'post',
+            data: {
+                email: $("[name='email']").val(),
+                password1: $("[name='password1']").val(),
+                password2: $("[name='password2']").val(),
+                verfy: $("[name='verfy']").val()
+            },
+            success: function (data) {
+                if(data == 'ok'){
+                    alert("注册成功！");
+                    window.location.href = '/home';
+                }
+                else if(data == 'verfy'){
+                    alert("验证码错误！");
+                }
+                else if(data == 'dump'){
+                    alert("邮箱已经注册！");
+                }
+            }
+        });
+    });
+    $('#replace').click(function () {
+            $.ajax({
+                url: '/verfy',
+                type: 'get',
+                data:{},
+                success: function (data) {
+                    $('#verfy_image').attr('src', data);
+                }
+            })
+        })
+</script>
+{% if error %}
+    <script>
+      bootbox.alert("{{error}}");
+    </script>
+{% endif %}
+</div>
+{% endblock %}

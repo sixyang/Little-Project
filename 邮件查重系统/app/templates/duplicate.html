@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% block title %}查重{% endblock %}
+{% block li_attr2 %}active{% endblock %}
+{% block content %}
+
+{% block styles %}
+<script src="https://cdn.bootcss.com/jquery/3.0.0/jquery.min.js"></script>
+<script type="text/javascript" src="https://assets.pyecharts.org/assets/echarts.min.js"></script>
+{{ super() }}
+<style>
+    ul.pagination {
+        display: inline-block;
+        padding: 0;
+        margin: 0;
+    }
+
+    ul.pagination li {
+        display: inline;
+
+    }
+
+    ul.pagination li a {
+        /*color: black;*/
+        float: left;
+        padding: 8px 16px;
+        text-decoration: none;
+        transition: background-color .3s;
+        border: 1px solid #ddd;
+        border-radius: 2px !important;
+    }
+
+    ul.pagination li a.active {
+        background-color: #4CAF50;
+        color: white;
+        border: 1px solid #4CAF50;
+    }
+
+    ul.pagination li a:hover:not(.active) {
+        background-color: #ddd;
+    }
+
+    ul.pagination .disabled {
+        pointer-events: none;
+        opacity: 0.6;
+    }
+
+
+</style>
+{% endblock%}
+<div class="panel panel-default" id="duplicate_tag" style="padding-top: 5%">
+    <hr>
+    <h2 style="float: left">分析中,耗时较长，请勿操作...</h2>
+    <img style="margin-left: 50px" src="../static/images/ball-triangle.svg">
+    <hr>
+</div>
+
+
+<div class="panel panel-default" style="padding-top: 5%">
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('file.show_upload_attachments') }}">作业信息</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active" href="{{ url_for('file.duplicate') }}">作业查重</a>
+        </li>
+    </ul>
+
+    <div id="result_form" class="panel-body container-fluid" style="padding-top: 2rem">
+        <table class="table table-bordered table-striped">
+            <h2 style="text-align: center;">查重信息汇总</h2>
+            <thead>
+            <tr>
+                <th>文件名</th>
+                <th>与它最相似的文件</th>
+                <th>相似度<sub>(降序排列)</sub></th>
+            </tr>
+            </thead>
+            <tbody id="duplicate_result">
+            </tbody>
+        </table>
+    </div>
+    <div id="info" class="container tab-content" style="padding-top: 2rem">
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+            <tr>
+                <th style="text-align: center;">附件列表</th>
+            </tr>
+            </thead>
+            <tbody>
+            <form>
+                {% for attach in index_list %}
+                <tr>
+                    {% if attach != 'Zips' and attach != 'Xlsxs' and attach != 'Webpages'%}
+                    <td style="color: #149a80"><input type="radio" checked='checked' name="dir" value="{{attach}}">
+                        {{attach}}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </form>
+            </tbody>
+
+        </table>
+        <div class="pull-right">
+        <ul class="pagination">
+            {{ html|safe }}
+        </ul>
+    </div>
+    </div>
+
+</div>
+<div class="progress" id="progress_">
+    <div class="progress-bar progress-bar-success" role="progressbar"
+         aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"
+         style="width: 0;">
+    </div>
+</div>
+
+<div>
+    <div style="text-align: center">
+        <button id="start_btn" class="btn btn-primary">开始查重</button>
+    </div>
+    <div style="text-align: center">
+        <button id="download_report" onclick="download_x();" class="btn btn-info">下载查重报告</button>
+    </div>
+    <div style="text-align: center; margin-top: 10px">
+        <button id="draw" onclick="draw();" class="btn btn-info"><abbr title="文件过多则会混乱">绘制报告图</abbr></button>
+    </div>
+
+    <div style="text-align: center; margin-top: 10px">
+        <button id="back" onclick="back();" class="btn btn-info">返回</button>
+    </div>
+</div>
+
+<div id="bar" style="width:1000px; height:600px;"></div>
+
+<script>
+    $(document).ready(function () {
+        $("#download_report").hide();
+        $("#duplicate_tag").hide();
+        $("#result_form").hide();
+        $("#draw").hide();
+        $("#back").hide();
+        $('#progress_').hide();
+        $('#bar').hide();
+        $('#newbar').hide();
+    });
+
+    function start_duplicate() {
+        $("#start_btn").hide();
+        $("#duplicate_tag").show(); // 显示正在查重标志
+        $("#info").hide();
+        $("#result_form").show();
+        $("#progress_").show();
+
+
+        $.ajax({
+            type: 'post',
+            url: '/duplicate',
+            data: {
+                dir: $('input[type=radio][name=dir]:checked').val()
+            },
+            success: function (data, status, request) {
+                status_url = request.getResponseHeader('Location');
+                update_progress(status_url, data);
+            },
+            error: function () {
+                $("#duplicate_tag").hide();
+                $("#back").show();
+                $("#progress_").hide();
+                bootbox.alert('分析出错');
+            }
+        })
+    }
+
+    function update_progress(status_url, data) {
+        // send GET request to status URL
+        if (status_url){
+            $.getJSON(status_url, function (data) {
+                if (data['state'] === 'SUCCESS') {
+                display(data);
+            } else {
+                progress = data['progress'];
+                console.log(progress);
+                $('[role="progressbar"]').width(progress);
+
+                setTimeout(function () {
+                    update_progress(status_url)
+                }, 2000);
+            }
+            });
+        }
+        else {
+            display(data);
+        }
+    }
+
+    function display(data) {
+        bootbox.alert('分析完成！');
+                $("#duplicate_tag").hide();
+                $("#download_report").show();
+                $("#draw").show();
+                $("#progress_").hide();
+
+                // 显示结果
+                for (var key in data["result"]) {
+                    var context = "<tr><td>" + data['result'][key][0] + "</td><td>" + data['result'][key][1] + "</td><td>" + data['result'][key][2] + "</td></tr>";
+                    $("#duplicate_result").append(context);
+                }
+    }
+
+
+    function download_x() {
+        filename = $('input[type=radio][name=dir]:checked').val();
+        window.location.href = "/file/download_x/" + filename;
+    }
+
+    function draw() {
+        $("#draw").hide();
+        $("#bar").show();
+        $("#newbar").show();
+        filename = $('input[type=radio][name=dir]:checked').val();
+        var chart = echarts.init(document.getElementById('bar'), 'white', {renderer: 'canvas'});
+        $.ajax({
+            type: "GET",
+            url: "/file/draw/" + filename,
+            dataType: 'json',
+            success: function (result) {
+                chart.setOption(result);
+            }
+        });
+    }
+
+    $(function () {
+        $('#start_btn').click(start_duplicate);
+    });
+
+    function back() {
+        history.go(-1);
+    }
+
+</script>
+{% endblock %}
+

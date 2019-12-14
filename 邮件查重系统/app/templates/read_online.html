@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}附件展示{% endblock %}
+{% block li_attr2 %}active{% endblock %}
+
+{% if not root %}
+{% block styles %}
+<link rel="stylesheet" href="../../static/bootstrap-4.3.1/css/bootstrap.min.css">
+<script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+<script src="../../static/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+<script src="../../static/bootstrap-4.3.1/js/bootbox.min.js"></script>
+<link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.css">
+{% endblock %}
+{% endif %}
+{% block content %}
+
+
+<ul class="nav nav-tabs" style="padding-top: 5%">
+    <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('file.show_upload_attachments') }}"><abbr title="可查看所有下载过的作业">所有作业</abbr></a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('file.duplicate') }}">作业查重</a>
+    </li>
+    <li class="nav-item">
+        {% if path %}
+            <a class="nav-link active" href="/file/read_online/{{path}}">在线批阅</a>
+        {% else %}
+        <a class="nav-link"><abbr title="只有在进入文件夹后才能使用">在线批阅</abbr></a>
+        {% endif%}
+    </li>
+</ul>
+
+
+<div class="container tab-content" style="padding-top: 3rem">
+    <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+            <tr>
+                <th style="text-align: center;">附件列表</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for attach in attachments %}
+            <tr>
+<!--                {% if path %}-->
+                    <td><a class="showhtml" style="cursor: pointer;" onclick="showHtml('{{attach}}');">{{ attach }}</a></td>
+<!--                {% else %}-->
+<!--                    <td><a href="/file/read_online/{{ attach }}">{{ attach }}</a></td>-->
+<!--                {% endif %}-->
+            </tr>
+            {% endfor %}
+            </tbody>
+    </table>
+
+</div>
+
+<script>
+    function showHtml(attach) {
+        // $.ajax({
+        //     url: "/file/read_online/{{path}}-"+attach,
+        //     method: 'get',
+        //     success: function (data) {
+        //         // window.open('/file/show_html');
+        //
+        //     },
+        //     error: function (data) {
+        //
+        //     }
+        // })
+        window.open("/file/read_online/{{path}}-"+attach);
+    }
+</script>
+{% endblock %}

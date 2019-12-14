@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}主页{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="../static/bootstrap-4.3.1/css/style.css">
+{% endblock %}
+{% block li_attr1 %}active{% endblock %}
+{% block content %}
+<div class="jumbotron" style="padding-bottom: 20px">
+   <div class="container">
+      <h1 class="display-4" style="font-family: Consolas"><strong>作业收集及查重系统</strong></h1><br><br>
+      <p><a class="btn btn-primary btn-lg" href="{{ url_for('base.help') }}" role="button">使用教程&nbsp;&raquo; </a></p>
+   </div>
+</div>
+
+
+<!-- /container -->
+<div class="container">
+    <div id="home-row" class="row">
+        <div class="col-12 col-sm-4 col-md-4 col-lg-4">
+            <abbr title="通过该功能收集学生的作业或报告，并进行下载或者查重分析" style="text-decoration: none">
+                <div class="text-center">
+                <a href="{{ url_for('email.save_emails') }}">
+                    <div class="home-hover"><img src="../static/images/download.svg" style="width: 120px">
+                    </div>
+                    <h3>下载邮件</h3>
+                </a>
+            </div>
+            </abbr>
+        </div>
+
+
+<!--        col-12 col-sm-3 col-md-3 col-lg-3-->
+        <div class="col-12 col-sm-4 col-md-4 col-lg-4">
+            <abbr title="通过该功能进行文件的查重和在线批改" style="text-decoration: none">
+                <div class="text-center">
+                <a href="{{ url_for('file.upload_file') }}">
+                    <div class="home-hover"><img src="../static/images/upload.svg" style="width: 120px"></div>
+                    <h3>上传文件</h3></a>
+                </div>
+            </abbr>
+
+        </div>
+
+        <div class="col-12 col-sm-4 col-md-4 col-lg-4">
+            <abbr title="通过该功能检查之前的操作记录" style="text-decoration: none">
+                <div class="text-center">
+                <a href="#">
+                    <div class="home-hover"><img src="../static/images/history.svg" style="width: 120px"></div>
+                    <h3>历史信息</h3></a>
+                </div>
+            </abbr>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

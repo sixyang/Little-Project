@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}上传文件{% endblock %}
+{% block nav_right %} {% endblock %}
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" type="text/css" href="../static/webuploader/webuploader.css">
+<script src="../static/webuploader/webuploader.js"></script>
+{% endblock %}
+
+{% block content %}
+<!--<div>-->
+<!--<h2>请选择要上传的文件，最好将所有文档用压缩包的方式上传</h2>-->
+<!--</div>-->
+<div class="container" style="padding-top: 5rem">
+    <div id="picker" >请选择文件</div>
+    <div id="progress" class="progress" style="width:500px; height:20px;float:left;margin:10px 0 10px 20px;">
+        <div class="progress-bar progress-bar-animated progress-bar-info active" role="progressbar" style="width:0;"></div>
+    </div>
+    <div style="clear:both;"></div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        var task_id = WebUploader.Base.guid(); // 产生文件唯一标识符task_id
+        var uploader = WebUploader.create({
+            swf: '../static/webuploader/Uploader.swf',
+            server: '{{ url_for("file.upload_part") }}', // 上传分片地址
+            pick: '#picker',
+            auto: true,
+            chunked: true,
+            chunkSize: 20 * 1024 * 1024,
+            fileSizeLimit: 50 * 1024 * 1024,
+            chunkRetry: 3,
+            threads: 1,
+            duplicate: false,
+            formData: { // 上传分片的http请求中一同携带的数据
+                task_id: task_id
+            }
+        });
+        var progress_bar = $('#progress');
+
+        uploader.on('startUpload', function() { // 开始上传时，调用该方法
+
+            progress_bar.show();
+            progress_bar.css('width', '0%');
+            progress_bar.text('0%');
+            progress_bar.removeClass('progress-bar-danger progress-bar-success');
+            progress_bar.addClass('active progress-bar-striped');
+        });
+
+        uploader.on('uploadProgress', function(file, percentage) { // 一个分片上传成功后，调用该方法
+            progress_bar.css('width', percentage * 100 - 1 + '%');
+            progress_bar.text(Math.floor(percentage * 100 - 1) + '%');
+        });
+
+        uploader.on('uploadSuccess', function(file) { // 整个文件的所有分片都上传成功后，调用该方法
+            var data = { 'task_id': task_id, 'filename': file.source['name'] };
+            $.get('{{ url_for("file.upload_success") }}', data);
+            progress_bar.css('width', '100%');
+            progress_bar.text('100%');
+            progress_bar.addClass('progress-bar-success');
+            progress_bar.text('上传完成');
+            bootbox.alert("上传完成");
+            window.location.href="/show_upload_attachments";
+        });
+
+        uploader.on('uploadError', function(file) { // 上传过程中发生异常，调用该方法
+            progress_bar.css('width', '100%');
+            progress_bar.text('100%');
+            progress_bar.addClass('progress-bar-danger');
+            progress_bar.text('上传失败，请重新上传');
+        });
+
+        uploader.on('uploadComplete', function(file) { // 上传结束，无论文件最终是否上传成功，该方法都会被调用
+            progress_bar.removeClass('active progress-bar-striped');
+        });
+
+        progress_bar.hide();
+    });
+
+</script>
+{% endblock %}

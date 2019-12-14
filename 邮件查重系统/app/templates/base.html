@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name='viewport' content='width=device-width initial-scale=1'>
+    {% block head %}
+    <title>{% block title %}标题{% endblock %}</title>
+    {% block styles %}
+    <link rel="stylesheet" href="../static/bootstrap-4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="../static/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+    <script src="../static/bootstrap-4.3.1/js/bootbox.min.js"></script>
+
+    <style>
+        #back-top {
+            position: fixed;
+            visibility: hidden;
+            margin: 0 20px 50px 0;
+            right: 0;
+            bottom: -300px;
+            overflow: hidden;
+            z-index: 99;
+        }
+
+        #back-top.show-totop {
+            visibility: visible;
+            bottom: 0;
+        }
+
+        #back-top.mobile-back-top {
+            -webkit-transform: scale(0.7);
+            -ms-transform: scale(0.7);
+            -o-transform: scale(0.7);
+            transform: scale(0.7);
+            margin: 0 2px 1px 0;
+        }
+
+        #back-top a {
+            background: #555555;
+            cursor: pointer;
+        }
+
+        #back-top a:hover {
+            background: #fcc300;
+        }
+
+        #back-top a {
+            display: block;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            text-decoration: none;
+            color: #fff;
+        }
+
+        #back-top a:before {
+            content: '\f077';
+            font: 25px/50px FontAwesome;
+        }
+    </style>
+    {% endblock %}
+    {% endblock %}
+
+</head>
+<body style="padding-bottom: 50px">
+<!--导航栏-->
+{% block nav %}
+<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-primary " style="height: 65px">
+    <a class="navbar-brand" href="#"></a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01"
+            aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarColor02">
+        <ul class="navbar-nav mr-auto">
+            <i class="fa fa-home" style="font-size:35px;color: aliceblue;margin-right: 10px"></i>
+            <li class="nav-item {% block li_attr1 %}{% endblock %}">
+                <a class="nav-link" id="main_page" href="{{ url_for('base.home') }}" style="font-size: 18px">主页 <span
+                        class="sr-only">(current)</span></a>
+            </li>
+
+            <i class="fa fa-file-o" style="font-size:32px;color: aliceblue;margin-left: 50px;margin-right: 10px"></i>
+            <li class="nav-item {% block li_attr2 %}{% endblock %}">
+                <a class="nav-link" href="/show_upload_attachments" style="font-size: 18px">文件</a>
+            </li>
+
+            <i class="fa fa-gear" style="font-size:35px;color: aliceblue;margin-left: 50px;margin-right: 10px"></i>
+            <li class="nav-item {% block li_attr3 %}{% endblock %}">
+                <a class="nav-link" href="{{ url_for('base.help') }}" style="font-size: 18px">帮助</a>
+            </li>
+
+            <i class="fa fa-comment-o" style="font-size:35px;color: aliceblue;margin-left: 50px;margin-right: 10px"></i>
+            <li class="nav-item {% block li_attr4 %}{% endblock %}">
+                <a class="nav-link" href="{{ url_for('base.feedback') }}" style="font-size: 18px">反馈</a>
+            </li>
+        </ul>
+        {% block nav_right %}
+        <ul class="navbar-nav my-2 my-lg-0">
+            {% if email %}
+            <li class="nav-item">
+                <p class="navbar-text my-2 my-sm-0 mr-sm-4">{{ email }}</p></li>
+            <li class="nav-item">
+                <a href="{{ url_for('auth.logout') }}">
+                    <button class="btn btn-info my-2 my-sm-0">退出登录</button>
+                </a></li>
+            {% else %}
+            <li class="nav-item">
+                <a href="{{ url_for('auth.login') }}">
+                    <button class="btn btn-outline-info my-2 my-sm-0 mr-sm-4">登录</button>
+                </a></li>
+            <li class="nav-item">
+                <a href="{{ url_for('auth.regist') }}">
+                    <button class="btn btn-info my-2 my-sm-0">注册</button>
+                </a></li>
+            {% endif %}
+        </ul>
+        {% endblock %}
+    </div>
+</nav>
+
+{% endblock %}
+
+<main role="main" style="padding-top: 5%; padding-bottom: 3.5rem">
+    <!-- 页面主体信息 -->
+    {% block content %}
+    {% endblock %}
+    <div id="back-top">
+        <a href="#" title="Back To Top"></a>
+    </div>
+
+</main>
+
+<div>
+    <footer class="bg-light fixed-bottom " style="height: 45px">
+        <!--页脚信息，显示版权信息-->
+        {% block footer %}
+        <div class="container">
+            <p class="text-sm-center text-lg-center mt-3 mb-3">&copy; 2019</p>
+        </div>
+        {% endblock %}
+    </footer>
+</div>
+
+<script type="text/javascript">
+    (function ($) {
+        $(document).ready(function () {
+            $(window).scroll(function () {
+                if ($(this).scrollTop() > 100) {
+                    $('#back-top').addClass('show-totop');
+                } else {
+                    $('#back-top').removeClass('show-totop');
+                }
+            });
+            $('#back-top').find('a').click(function () {
+                $('body,html').stop(false, false).animate({scrollTop: 0}, 150);
+                return false;
+            });
+        });
+    })(jQuery);
+
+</script>
+
+</body>
+</html>

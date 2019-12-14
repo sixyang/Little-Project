@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}反馈{% endblock %}
+{% block li_attr4 %}active{% endblock %}
+{% block content %}
+    <div class="container" style="padding-top: 3rem">
+        <form name="feedback" method="post" action="/feedback">
+            <table class="table table-bordered" style="width: 800px; margin: 0 auto">
+                <thead class="thead-light">
+                    <th><center>用户反馈</center></th>
+                </thead>
+                <tbody>
+                    <tr><td>
+                        <div class="form-group row">
+                            <label class="col-2 col-form-label-lg">联系方式:</label>
+                            <div class="col-10">
+                                <input type="text" class="form-control form-control-lg" name="contact_way"
+                                       placeholder="邮箱/电话" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-2 col-form-label-lg">反馈内容:</label>
+                            <div class="col-10">
+                                <textarea class="form-control" name="feedback" rows="3" required></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="float: right">发送</button>
+                    </td></tr>
+
+                </tbody>
+            </table>
+        </form>
+    </div>
+
+{% if message %}
+    <script>bootbox.alert('{{ message }}');</script>
+{% endif %}
+{% endblock %}

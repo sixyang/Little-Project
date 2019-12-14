@@ -1,0 +1,34 @@
+
+#home-row {
+    padding-top: 10px;
+}
+
+#home-row a {
+    text-decoration: none;
+}
+
+#home-row .col-12 {
+    height: 232px;
+    padding-top: 10px;
+
+}
+
+#home-row .col-12 .home-hover {
+    height: 180px;
+    overflow: hidden;
+    padding-top: 16px;
+    transition: all ease-in .5s;
+}
+
+#home-row .col-12 .home-hover:hover {
+    height: 180px;
+    padding-top: 0;
+}
+
+@media (max-width: 767px) {
+
+    #home-row {
+        padding-top: 16px;
+    }
+}
+

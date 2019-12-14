@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% block title %}下载邮件{% endblock %}
+{% block li_attr2 %}active{% endblock %}
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="../static/bootstrap-4.3.1/css/bootstrap-datepicker3.min.css">
+<script src="../static/bootstrap-4.3.1/js/bootstrap-datepicker.min.js"></script>
+<script src="../static/bootstrap-4.3.1/js/bootstrap-datepicker.zh-CN.min.js"></script>
+{% endblock %}
+{% block content %}
+<div class="container" style="padding-top: 4rem">
+    <div id="email_form" class="form-horizontal">
+
+        <div class="form-group col-md-6">
+            <p>标星号的为必填项</p>
+            <label class="col-form-label">*邮箱 </label>
+            <input class="form-control" type="text" placeholder="{{ email }}" disabled="" required="required">
+        </div>
+
+        <div class="form-group col-md-6">
+            <label class="col-form-label">*邮箱密码/授权码</label>
+            <input type="password" class="form-control" name="email_password" id="email_password"
+                   value="" placeholder="请输入邮箱密码/授权码" required="required">
+        </div>
+
+        <div class="form-group col-md-6">
+            <label class="col-form-label">*报告名</label>
+            <input type="text" class="form-control" name="report_name" id="report_name" required="required">
+        </div>
+
+        <div class="form-group col-md-6">
+            <label class="col-form-label">*下载开始时间</label>
+            <input type="text" class="input-group date form-control" name="start_time" id="start_time"
+                   required="required">
+        </div>
+
+        <div class="form-group col-md-6">
+            <label class="col-form-label">*下载截止时间</label>
+            <input type="text" class="input-group date form-control" name="end_time" id="end_time" required="required">
+        </div>
+
+
+        <div class="form-group col-md-6">
+            <label class="col-form-label">回执邮件内容</label>
+            <textarea name="receipt_ctx" id="receipt_ctx" class="form-control" rows="3">同学你好，你提交的《》已收到。</textarea>
+        </div>
+
+        <div class="form-group col-md-6">
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" id="customCheck1" name="send_email">
+                <label class="custom-control-label" for="customCheck1">发送回执邮件</label>
+            </div>
+            <br>
+
+            <div class="form-group">
+                <div>
+                    <button id="start_download_emails" class="btn btn-primary btn-lg">提交</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="download_tag">
+    <hr>
+    <h2>下载中,请勿操作...</h2>
+    <hr>
+</div>
+<div class="progress" id="progress_">
+    <div class="progress-bar progress-bar-success" role="progressbar"
+         aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"
+         style="width: 0;">
+    </div>
+</div>
+
+<script>
+    //时间控件
+    $('.input-group.date').datepicker({
+        format: "yyyy-mm-dd",
+        todayBtn: "linked",
+        clearBtn: true,
+        language: "zh-CN"
+    });
+
+    $(document).ready(function () {
+        $("#download_tag").hide();
+        $("#progress_").hide();
+    });
+
+    function start_download_emails() {
+        var email_password = $("#email_password").val();
+        var start_time = $("#start_time").val();
+        var end_time = $("#end_time").val();
+        var report_name = $("#report_name").val();
+        var send_email = $("input:checkbox:checked").val();
+        var receipt = $("#receipt_ctx").val();
+        var formData = new FormData();
+        formData.append("email_password", email_password);
+        formData.append("start_time", start_time);
+        formData.append("end_time", end_time);
+        formData.append("report_name", report_name);
+        formData.append("receipt_ctx", receipt);
+        formData.append("send_email", send_email);
+
+        if (email_password && start_time && end_time && report_name && formData) {
+            $("#email_form").hide();  //隐藏表单
+            $("#download_tag").show(); // 显示正在下载标志
+            $("#progress_").show();
+
+            $.ajax({
+                type: 'POST',
+                data: formData,
+                url: '/email_status',
+                contentType: false,
+                processData: false,//这两个一定设置为false
+                success: function (data, status, request) {
+                    if (data['code'] === 'ok') {
+                        status_url = request.getResponseHeader('Location');
+                        update_progress(status_url);
+                    } else if (data['code'] === 'no') {
+                        alert("请填写相应字段！");
+                    }
+                },
+                error: function () {
+                    bootbox.alert("服务器端发生错误！");
+                }
+            });
+        } else {
+            bootbox.alert("请填写相应字段！");
+        }
+    }
+
+    function update_progress(status_url) {
+        // send GET request to status URL
+        $.getJSON(status_url, function (data) {
+            if (data['state'] === 'SUCCESS') {
+                bootbox.alert("邮件下载完成!", function () {
+                    window.location.href = "/show_attachments";
+                });
+            } else if (data['state'] === 'FAILURE') {
+                alert("邮箱授权码错误！请重新输入");
+                location.reload();
+            } else {
+                progress = data['progress'];
+                $('[role="progressbar"]').width(progress);
+                setTimeout(function () {
+                    update_progress(status_url)
+                }, 2000);
+            }
+        });
+    }
+
+    $(function () {
+        $('#start_download_emails').click(start_download_emails);
+    });
+</script>
+{% endblock %}
